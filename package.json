@@ -1,0 +1,28 @@
+{
+  "name": "Product-ManageMent",
+  "version": "1.0.0",
+  "description": "A Mern-Web Application to Manage Your Shop Products",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "lint": "eslint",
+    "test": "jest",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Adnan2-a11y/Product-Management.git"
+  },
+  "keywords": [],
+  "author": "Rafshan Jani",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Adnan2-a11y/Product-Management/issues"
+  },
+  "homepage": "https://github.com/Adnan2-a11y/Product-Management#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "nodemon": "^3.1.11"
+  }
+}
