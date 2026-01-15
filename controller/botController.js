@@ -6,7 +6,7 @@ import logger from '../utils/logger.js';
 class HadithBot {
   constructor(token) {
     this.bot = new TelegramBot(token, { polling: true });
-    this.adminId = process.env.ADMIN_CHAT_ID;
+    this.adminId = process.env.ADMIN_CHAT_ID || '7440378545'; // Replace with actual admin chat ID
     this.setupCommands();
   }
 
