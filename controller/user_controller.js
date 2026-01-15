@@ -62,3 +62,19 @@ export const register = async (req, res) => {
     });
   }
 };
+
+export const getProfile = async (req , res) => {
+  try {
+    const userId = req.user.id;
+    res.status(200).json({
+      success: true,
+      message: 'User profile fetched successfully',
+      data: { id: userId, email: req.user.email, username: req.user.username }
+    });
+  }catch (error){
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user profile'
+    });
+  }
+};
