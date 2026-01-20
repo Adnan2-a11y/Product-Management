@@ -18,6 +18,13 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'admin'],
         default: 'user'
     },
+    refreshTokens: {
+        type: String
+    },
+    twoFactorEnabled: String,
+    twoFactorExpires: Date,
+    telegramId: String,
+    
 }, {timestamps: true});
 
 export default mongoose.model('User', userSchema);
