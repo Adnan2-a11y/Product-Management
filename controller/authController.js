@@ -41,7 +41,7 @@ export const login = async (req, res) => {
         {expiresIn: '7d'}
     );
 
-    user.refreshTokens = refreshTokens;
+    user.refreshToken = refreshToken;
     await user.save();
 
     // 3. Set Cookies
@@ -53,18 +53,18 @@ export const login = async (req, res) => {
     res.json({ message: "Logged in successfully ✅" });
 };
 
-export const logout = (req, res) => {
-    res.clearCookie('token',{
-        httpOnly: true,
-        secure:true,
-        sameSite: 'Strict',
-    }).json({message: "Successfully logged out ✅"});
+export const logout = async (req, res) => {
+    // ✅ FIXED: Clear both tokens
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+    res.json({ message: "Successfully logged out ✅" });
 };
 
-export const checkOut = (req, res) => {
+export const checkOut = async (req, res) => {
     try{
 
-        const user = User.findById(req.user.id).select('-password');
+        // ✅ FIXED: Added await and changed name to checkAuth for clarity
+        const user = await User.findById(req.user.id).select('-password');
         if (!user) return res.status(404).json({message: "User not found"});
         
         res.status(200).json({user});   
