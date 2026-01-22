@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/useAuthStore.js";
 import { LoginPage } from "./pages/LoginPage.jsx";
 import { SignupPage } from "./pages/SignupPage.jsx";
+import { HomePage } from "./pages/HomePage.jsx";
 import { ProtectedRoute } from "../components/ProtectedRoute.jsx";
 
 function App() {
@@ -33,7 +34,7 @@ function App() {
           path="/" 
           element={
             <ProtectedRoute>
-              <div className="p-10"><h1>Welcome to the Dashboard! 🚀</h1></div>
+              <HomePage />
             </ProtectedRoute>
           } 
         />
