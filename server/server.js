@@ -15,22 +15,16 @@ const PORT = process.env.PORT || 3000;
 dotenv.config();
 connectDB();
 const app = express();
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per window
-    message: "Too many requests, please try again later."
-});
 
-
-app.use(express.json());
-app.use(cookieParser());
-app.use(helmet());
 app.use(cors({
     origin: 'http://localhost:5173', // Adjust based on your frontend URL
     credentials: true,
 }));
 
-app.use('/api/', limiter);
+app.use(express.json());
+app.use(cookieParser());
+app.use(helmet());
+
 app.use('/api/auth', authRoutes);
 
 

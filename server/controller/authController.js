@@ -13,12 +13,11 @@ export const signup = async (req, res) => {
             email,
             password: hashPassword
         });
-        const notification = `<b>New User Registered!</b>\n📧 Email: <code>${email}</code>\n⏰ Time: ${new Date().toLocaleTimeString()}`;
-        await sendAdminNotification(notification);
-
-        res.status(201).json({messageL: "Account Created Successfully ✅"});
+    
+        res.status(201).json({message: "Account Created Successfully ✅"});
     } catch (error) {
-        res.status(500).json({message: "Error creating account", error});
+        console.error("Signup error:", error);
+        res.status(500).json({message: "Error creating account", error: error.message});
     }
 };
 
@@ -45,12 +44,13 @@ export const login = async (req, res) => {
     await user.save();
 
     // 3. Set Cookies
-    res.cookie('accessToken', accessToken, { httpOnly: true, secure: true, sameSite: 'Strict', maxAge: 15 * 60 * 1000 });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: 'Strict', path: '/api/auth/refresh', maxAge: 7 * 24 * 60 * 60 * 1000 });
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('accessToken', accessToken, { httpOnly: true, secure: isProduction, sameSite: 'Lax', maxAge: 15 * 60 * 1000 });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: isProduction, sameSite: 'Lax', path: '/api/auth/refresh', maxAge: 7 * 24 * 60 * 60 * 1000 });
 
-    const notification = `<b>User Logged In!</b>\n📧 Email: <code>${email}</code>\n⏰ Time: ${new Date().toLocaleTimeString()}`;
-    await sendAdminNotification(notification);
-    res.json({ message: "Logged in successfully ✅" });
+   //const notification = `<b>User Logged In!</b>\n📧 Email: <code>${email}</code>\n⏰ Time: ${new Date().toLocaleTimeString()}`;
+   //await sendAdminNotification(notification);
+    res.json({ message: "Logged in successfully ✅", user: { id: user._id, email: user.email } });
 };
 
 export const logout = async (req, res) => {
