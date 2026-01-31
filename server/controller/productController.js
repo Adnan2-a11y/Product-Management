@@ -1,4 +1,5 @@
 import Product  from "../models/Product.js";
+import Category from "../models/Category.js";
 import slugify from "slugify";
 
 export const createProduct = async (req , res) => {
@@ -56,12 +57,13 @@ export const getAllProducts = async (req, res) => {
         // Converts { price: { gte: '50' } } -> { price: { $gte: '50' } }
         let queryStr = JSON.stringify(queryObj);
         queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
+        const parsedQuery = JSON.parse(queryStr);
         
-        let query = Product.find(JSON.parse(queryStr));
+        let query = Product.find(parsedQuery);
 
         // 3. SEARCH (Using the Text Index we created in the Schema)
         if (req.query.search) {
-            query = query.find({ $text: { $search: req.query.search } });
+            query = query.where({ $text: { $search: req.query.search } });
         }
 
         // 4. SORTING
@@ -90,6 +92,7 @@ export const getAllProducts = async (req, res) => {
             data: products
         });
     } catch (error) {
+        console.error("getAllProducts error:", error);
         res.status(500).json({ message: "Error fetching products", error: error.message });
     }
 };

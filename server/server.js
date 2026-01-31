@@ -11,11 +11,14 @@ import rateLimit from 'express-rate-limit';
 //import routes
 import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/product.route.js';
+import initBot from './bot/index.js';
 
 const PORT = process.env.PORT || 3000;
 dotenv.config();
 connectDB();
 const app = express();
+
+initBot();
 
 app.use(cors({
     origin: 'http://localhost:5173', // Adjust based on your frontend URL
