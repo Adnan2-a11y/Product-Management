@@ -11,4 +11,4 @@ coverage/
 npm-debug.log*
 yarn-debug.log*
 icons/
-server/ml-services/v_env
+v_env/
