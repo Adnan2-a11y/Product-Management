@@ -23,6 +23,7 @@
   "homepage": "https://github.com/Adnan2-a11y/Product-Management#readme",
   "dependencies": {
     "argon2": "^0.44.0",
+    "axios": "^1.13.4",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
