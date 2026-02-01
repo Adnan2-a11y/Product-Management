@@ -1,11 +1,12 @@
 # main.py
+import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
 from sklearn.ensemble import IsolationForest
 import pandas as pd
 from typing import List 
 
-app = FastAPI();
+app = FastAPI()
 class LoginAttempt(BaseModel):
     lat: float
     lon: float
@@ -30,3 +31,7 @@ async def check_anomly(data: AnomalyCheckRequest):
         "is_suspicious": is_suspicious,
         "score": float(model.decision_function(current_point)[0])
     }
+
+if __name__ == '__main__':
+    # সঠিক uvicorn রান করার নিয়ম
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
