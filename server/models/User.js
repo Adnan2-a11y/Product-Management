@@ -21,6 +21,14 @@ const userSchema = new mongoose.Schema({
     refreshToken: {
         type: String
     },
+    // models/User.js এ যোগ করুন
+    loginHistory: [{
+        latitude: Number,
+        longitude: Number,
+        loginTime: Number, // decimal hour: 14.5
+        timestamp: { type: Date, default: Date.now }
+    }],
+
     twoFactorEnabled: String,
     twoFactorExpires: Date,
     telegramId: String,

@@ -1,6 +1,7 @@
 import User from '../models/User.js'; // Note the .js extension
 import jwt from 'jsonwebtoken';
 import argon2 from 'argon2';
+import axios from 'axios';
 import { sendAdminNotification } from '../services/notification.service.js';
 
 
