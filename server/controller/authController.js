@@ -23,11 +23,62 @@ export const signup = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-    const {email, password} = req.body;
+    const {email, password, lat, lon} = req.body;
     const user = await User.findOne({email});
     if (!user || !(await argon2.verify(user.password, password))) {
         return res.status(401).json({message: "Invalid email or password"});
     }
+        // --- ANOMALY DETECTION INTEGRATION ---
+        // 1. Declare these variables HERE so they are accessible everywhere 👇
+    let isSuspiciousLogin = false;
+    let anomalyScore = 0;
+    try {
+        const loginHour = new Date().getHours();
+        
+        // Prepare data for FastAPI (main.py)
+        const anomalyData = {
+            // Map Mongoose fields (latitude/longitude) to FastAPI fields (lat/lon)
+            history: (user.loginHistory || []).map(h => ({
+                lat: h.latitude || 0,
+                lon: h.longitude || 0,
+                login_hour: h.loginTime || 0
+            })),
+            current: { 
+                lat: parseFloat(lat) || 0,
+                lon: parseFloat(lon) || 0,
+                login_hour: loginHour 
+            }
+        };
+
+        const response = await axios.post('http://127.0.0.1:8000/check-anomly', anomalyData);
+        isSuspiciousLogin = response.data.is_suspicious;
+              anomalyScore = response.data.score;
+      
+// ✅ DEFINE THESE VARIABLES BEFORE THE NOTIFICATION
+        const currentTime = new Date().toLocaleTimeString();
+        const statusHeader = isSuspiciousLogin ? "⚠️ Suspicious Login Detected!" : "✅ Successful Login";
+        const locationStatus = isSuspiciousLogin ? "Unusual" : "Recognized";
+
+        const notification = `
+        🛡️ <b>AUTH SYSTEM ALERT</b>
+        
+        ${statusHeader}
+        <b>Email:</b> <code>${email}</code>
+        <b>Time:</b> ${currentTime}
+        <b>Location:</b> ${locationStatus}
+        <b>Score:</b> ${anomalyScore.toFixed(4)}
+        `.trim();
+
+        // Send to Telegram
+        await sendAdminNotification(notification);
+
+        // 2. Update user login history in DB
+        user.loginHistory.push({ lat: lat || 0, lon: lon || 0, login_hour: loginHour });
+        if (user.loginHistory.length > 50) user.loginHistory.shift(); 
+        } catch (error) {
+        console.error("Anomaly/Notification service error:", error.message);
+    }
+    // -------------------------------------
     //generate token
     const accessToken = jwt.sign({
         id: user._id},
