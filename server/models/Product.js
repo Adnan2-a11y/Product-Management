@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import slugify from 'slugify';
+import { nanoid } from 'nanoid';
 
 const productSchema = new mongoose.Schema({
     name: {
@@ -60,6 +62,25 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ category: 1, price: 1 });
 
 // 🔍 Text Index for Global Search (Name and Description)
-productSchema.index({ name: 'text', description: 'text' });
+// Pre-save middleware
+productSchema.pre('save', async function(next) {
+    if (!this.isModified('name')) return next();
+
+    // 1. Create the base slug
+    let baseSlug = slugify(this.name, { lower: true, strict: true });
+
+    // 2. Check if this slug already exists
+    const slugExists = await mongoose.models.Product.findOne({ slug: baseSlug });
+
+    if (slugExists) {
+        // 3. Append a 4-character unique ID if duplicate found
+        this.slug = `${baseSlug}-${nanoid(4)}`;
+    } else {
+        this.slug = baseSlug;
+    }
+    
+    next();
+});
+
 
 export default mongoose.model('Product', productSchema);
