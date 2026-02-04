@@ -14,7 +14,10 @@ export const createProductSchema = z.object({
     
     brand: z.string().nonempty("Brand is required"),
     
-    stock: z.number().int().nonnegative("Stock cannot be negative"),
+    stock: z.preprocess(
+    (val) => (val ? Number(val) : 0), 
+    z.number().int().nonnegative("Stock cannot be negative")
+),
     
     // Validate images array
     images: z.array(

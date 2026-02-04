@@ -10,7 +10,7 @@ import rateLimit from 'express-rate-limit';
 
 //import routes
 import authRoutes from './routes/authRoutes.js';
-import productRoutes from './routes/productRoutes.js';
+import v1Routes from './routes/v1/index.js';
 
 const PORT = process.env.PORT || 3000;
 dotenv.config();
@@ -27,7 +27,7 @@ app.use(cookieParser());
 app.use(helmet());
 
 app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
+app.use('/api/v1', v1Routes);
 
 
 app.get('/', (req, res) => {

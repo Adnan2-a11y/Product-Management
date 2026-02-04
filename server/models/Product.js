@@ -80,8 +80,8 @@ productSchema.index({ brand: 1, price: 1 });
 productSchema.index({ name: 'text', description: 'text' });
 
 // 🔗 SLUG LOGIC (Improved)
-productSchema.pre('save', async function(next) {
-    if (!this.isModified('name')) return next();
+productSchema.pre('save', async function() {
+    if (!this.isModified('name')) return;
 
     let baseSlug = slugify(this.name, { lower: true, strict: true });
     
@@ -93,13 +93,11 @@ productSchema.pre('save', async function(next) {
     } else {
         this.slug = baseSlug;
     }
-    next();
 });
 
 // 🛡️ QUERY MIDDLEWARE: Automatically filter out deleted products
-productSchema.pre(/^find/, function(next) {
+productSchema.pre(/^find/, function() {
     this.find({ isDeleted: { $ne: true } });
-    next();
 });
 
 export default mongoose.model('Product', productSchema);
