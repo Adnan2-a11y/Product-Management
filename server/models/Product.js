@@ -8,29 +8,31 @@ const productSchema = new mongoose.Schema({
         required: [true, 'Product name is required'],
         trim: true,
         maxlength: [200, 'Name cannot exceed 200 characters'],
-        index: true // Single field index for basic search
     },
     slug: { 
         type: String, 
         unique: true, 
-        lowercase: true 
+        lowercase: true,
+        index: true // Fast lookup for SEO-friendly URLs
     },
     description: {
         type: String,
         required: [true, 'Description is required']
     },
     price: {
-        type: mongoose.Schema.Types.Decimal128, // Professional choice for money
+        type: mongoose.Schema.Types.Decimal128, 
         required: true,
-        default: 0.0
+        default: 0.0,
+        // Getter/Setter ensures price is always a number in JS but Decimal128 in DB
+        get: (v) => v ? parseFloat(v.toString()) : v,
+        set: (v) => mongoose.Types.Decimal128.fromString(v.toString())
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category', // Reference to a separate Category model
+        ref: 'Category',
         required: true,
-        index: true
     },
-    brand: { type: String, required: true },
+    brand: { type: String, required: true, index: true },
     stock: {
         type: Number,
         required: true,
@@ -39,48 +41,65 @@ const productSchema = new mongoose.Schema({
     },
     images: [{
         url: { type: String, required: true },
-        public_id: { type: String, required: true } // For Cloudinary/S3 management
+        public_id: { type: String, required: true } 
     }],
     variants: [{
         size: String,
         color: String,
-        additionalPrice: Number,
-        sku: { type: String, unique: true } // Unique Stock Keeping Unit
+        additionalPrice: { type: Number, default: 0 },
+        sku: { type: String, unique: true, sparse: true } // sparse: true allows nulls if no variant
     }],
     ratings: {
-        average: { type: Number, default: 0 },
+        average: { type: Number, default: 0, min: 0, max: 5 },
         count: { type: Number, default: 0 }
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: true,
+        index: true
+    },
+    // 🛡️ Soft Delete field - Professional standard
+    isDeleted: {
+        type: Boolean,
+        default: false,
+        select: false // Usually hide this from default API responses
     }
-}, { timestamps: true });
+}, { 
+    timestamps: true,
+    toJSON: { getters: true }, // Crucial: Apply Decimal128 getters when sending JSON
+    toObject: { getters: true }
+});
 
-// 🚀 Composite Index for Professional Filtering (e.g., Category + Price)
-productSchema.index({ category: 1, price: 1 });
+// 🚀 PRODUCTION INDEXES (ESR Rule: Equality, Sort, Range)
+// Optimized for: Filter by Category + Sort by Price + Filter by Stock
+productSchema.index({ category: 1, price: 1, isDeleted: 1 });
+productSchema.index({ brand: 1, price: 1 });
 
-// 🔍 Text Index for Global Search (Name and Description)
-// Pre-save middleware
+// 🔍 Search Index for "Search Bar" functionality
+productSchema.index({ name: 'text', description: 'text' });
+
+// 🔗 SLUG LOGIC (Improved)
 productSchema.pre('save', async function(next) {
     if (!this.isModified('name')) return next();
 
-    // 1. Create the base slug
     let baseSlug = slugify(this.name, { lower: true, strict: true });
-
-    // 2. Check if this slug already exists
-    const slugExists = await mongoose.models.Product.findOne({ slug: baseSlug });
+    
+    // Check if slug exists (using constructor to avoid circular dependency)
+    const slugExists = await this.constructor.findOne({ slug: baseSlug });
 
     if (slugExists) {
-        // 3. Append a 4-character unique ID if duplicate found
-        this.slug = `${baseSlug}-${nanoid(4)}`;
+        this.slug = `${baseSlug}-${nanoid(6)}`;
     } else {
         this.slug = baseSlug;
     }
-    
     next();
 });
 
+// 🛡️ QUERY MIDDLEWARE: Automatically filter out deleted products
+productSchema.pre(/^find/, function(next) {
+    this.find({ isDeleted: { $ne: true } });
+    next();
+});
 
 export default mongoose.model('Product', productSchema);
